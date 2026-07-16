@@ -1,0 +1,13 @@
+{
+  "name": "meta-balance-monitor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Checks Meta Ads 'Available funds' balance and alerts via Slack + email when below threshold",
+  "scripts": {
+    "check": "node check-balance.js"
+  },
+  "dependencies": {
+    "playwright": "^1.47.0",
+    "nodemailer": "^6.9.14"
+  }
+}
