@@ -13,6 +13,9 @@ const ACCOUNTS = [process.env.AD_ACCOUNT_1, process.env.AD_ACCOUNT_2]
   .map((id) => id.replace(/^act_/, ''));
 
 // ---------- Cookie handling ----------
+// Cookie-Editor exports an array of objects like:
+// { domain, expirationDate, hostOnly, httpOnly, name, path, sameSite, secure, session, value }
+// Playwright's addCookies expects: name, value, domain, path, expires (seconds), httpOnly, secure, sameSite
 function mapSameSite(value) {
   if (!value) return 'Lax';
   const v = String(value).toLowerCase();
@@ -104,11 +107,22 @@ async function checkAccount(browser, accountId) {
   }
 
   const result = extractBalance(fullText);
-  await context.close();
 
   if (!result.found) {
+    // Diagnostic output: show what we actually saw so the extraction logic can be fixed.
+    const idx = fullText.indexOf('Available funds');
+    if (idx === -1) {
+      console.log(`[DEBUG act_${accountId}] "Available funds" text not found on page at all. First 1500 chars of body text:`);
+      console.log(fullText.slice(0, 1500));
+    } else {
+      console.log(`[DEBUG act_${accountId}] "Available funds" found, but no ₹ amount matched nearby. Surrounding text:`);
+      console.log(fullText.slice(Math.max(0, idx - 50), idx + 400));
+    }
+    await context.close();
     return { accountId, error: 'balance_not_found' };
   }
+
+  await context.close();
   return { accountId, balance: result.value };
 }
 
