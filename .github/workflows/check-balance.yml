@@ -1,0 +1,36 @@
+name: Check Meta Ads Balance
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run balance check
+        env:
+          FB_COOKIES: ${{ secrets.FB_COOKIES }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          AD_ACCOUNT_1: ${{ secrets.AD_ACCOUNT_1 }}
+          AD_ACCOUNT_2: ${{ secrets.AD_ACCOUNT_2 }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          THRESHOLD: '10000'
+        run: node check-balance.js
