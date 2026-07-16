@@ -49,6 +49,8 @@ function looksLoggedOut(fullText) {
   return (
     fullText.includes('Log into Facebook') ||
     fullText.includes('You must log in to continue') ||
+    fullText.includes('Log into business tools from Meta') ||
+    (fullText.includes('Get started with') && fullText.includes('business tools from Meta')) ||
     (fullText.includes('Log In') && fullText.includes('Forgotten password'))
   );
 }
@@ -89,6 +91,15 @@ async function checkAccount(browser, accountId) {
   } catch (e) {
     throw new Error('FB_COOKIES secret is not valid JSON. Re-export cookies and update the secret.');
   }
+
+  // Safe diagnostic: names + domains only, never values.
+  const importantNames = ['c_user', 'xs', 'datr', 'sb', 'fr'];
+  const foundNames = rawCookies.map((c) => c.name);
+  const domains = [...new Set(rawCookies.map((c) => c.domain))];
+  console.log(`[DEBUG] Loaded ${rawCookies.length} cookies from FB_COOKIES.`);
+  console.log(`[DEBUG] Domains present: ${domains.join(', ')}`);
+  console.log(`[DEBUG] Key auth cookies present: ${importantNames.filter((n) => foundNames.includes(n)).join(', ') || 'NONE FOUND'}`);
+
   await context.addCookies(toPlaywrightCookies(rawCookies));
 
   const page = await context.newPage();
